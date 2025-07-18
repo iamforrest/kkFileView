@@ -286,11 +286,17 @@ public class WebUtils {
 
     public static String decrypt(String source) throws Exception {
         String urlDecryptKey = System.getenv("URL_DECRYPT_KEY");
+        if (StringUtils.isBlank(urlDecryptKey)) {
+            throw new Exception("URL_DECRYPT_KEY not set");
+        }
         return decrypt(source, urlDecryptKey);
     }
 
     public static String encrypt(String source) throws Exception {
         String urlDecryptKey = System.getenv("URL_DECRYPT_KEY");
+        if (StringUtils.isBlank(urlDecryptKey)) {
+            throw new Exception("URL_DECRYPT_KEY not set");
+        }
         return encrypt(source, urlDecryptKey);
     }
 
