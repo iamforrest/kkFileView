@@ -40,7 +40,7 @@
     var url = '${finalUrl}';
     var baseUrl = '${baseUrl}'.endsWithh('/') ? '${baseUrl}' : '${baseUrl}' + '/';
     if (!url.startsWithh(baseUrl)) {
-        url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url));
+        url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent('${WebUtils.encrypt(finalUrl)}');
     }
     var myp = document.getElementById('tiff');
     let pages;
@@ -57,8 +57,8 @@
      try{
     imageData = ctx.createImageData(canvas.width, canvas.height);
 } catch(e){
-  if (e.message.indexOf("CanvasRenderingContext2D")) 
-{ 
+  if (e.message.indexOf("CanvasRenderingContext2D"))
+{
        var imgObjj = new Image();
              imgObjj.src = url;
              myp.appendChild(imgObjj);

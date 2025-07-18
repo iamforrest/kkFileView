@@ -38,7 +38,7 @@ var process_wb = (function() {
  var url = '${finalUrl}';
   var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
     if (!url.startsWith(baseUrl)) {
-         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url));
+         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent('${WebUtils.encrypt(finalUrl)}');
     }
 let xhr = new XMLHttpRequest();
 xhr.open('GET',url); //文件所在地址

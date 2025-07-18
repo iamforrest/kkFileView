@@ -28,9 +28,9 @@
     var url = '${finalUrl}';
     var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
     if (!url.startsWith(baseUrl)) {
-         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url));
+         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent('${WebUtils.encrypt(finalUrl)}');
     }
-    
+
 function blobToArrayBuffer(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -57,7 +57,7 @@ function blobToArrayBuffer(blob) {
       allowScriptedContent: true
      // height: 600
     });
-    
+
     var displayed = rendition.display();
     var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
     var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
@@ -104,7 +104,7 @@ function blobToArrayBuffer(blob) {
         prev.textContent = "";
       }
     });
-	
+
 	 rendition.on("rendered", function(section){
       var current = book.navigation && book.navigation.get(section.href);
 
@@ -144,11 +144,11 @@ function blobToArrayBuffer(blob) {
 			return false;
 			};
 		});
-       
+
         }
         xhr.send();
-        
- 
+
+
   		 /*初始化水印*/
  if (!!window.ActiveXObject || "ActiveXObject" in window)
 {

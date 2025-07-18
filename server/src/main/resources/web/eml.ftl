@@ -22,7 +22,7 @@
     var url = '${finalUrl}';
     var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
     if (!url.startsWith(baseUrl)) {
-         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url));
+         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent('${WebUtils.encrypt(finalUrl)}');
     }
     document.getElementsByTagName('iframe')[0].src =  "${baseUrl}eml/index.html?file="+encodeURIComponent(url);
     document.getElementsByTagName('iframe')[0].height = document.documentElement.clientHeight - 10;
@@ -33,7 +33,7 @@
         var fm = document.getElementsByTagName("iframe")[0];
         fm.height = window.document.documentElement.clientHeight - 10;
     }
-	
+
   		 /*初始化水印*/
  if (!!window.ActiveXObject || "ActiveXObject" in window)
 {

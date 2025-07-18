@@ -8,6 +8,9 @@ import org.springframework.util.Base64Utils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.HtmlUtils;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -17,6 +20,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -30,6 +35,7 @@ public class WebUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebUtils.class);
     private static final String BASE64_MSG = "base64";
+
     /**
      * 获取标准的URL
      *
@@ -43,7 +49,6 @@ public class WebUtils {
 
     /**
      * 对文件名进行编码
-     *
      */
     public static String encodeFileName(String name) {
         try {
@@ -71,7 +76,7 @@ public class WebUtils {
     /**
      * 对URL进行编码
      */
-    public static String  urlEncoderencode(String urlStr) {
+    public static String urlEncoderencode(String urlStr) {
 
         String fullFileName = getUrlParameterReg(urlStr, "fullfilename");  //获取流文件名
         if (org.springframework.util.StringUtils.hasText(fullFileName)) {
@@ -166,6 +171,7 @@ public class WebUtils {
 
     /**
      * 从url中剥离出文件名
+     *
      * @param file 文件
      * @return 文件名
      */
@@ -250,8 +256,9 @@ public class WebUtils {
         }
         return null;
     }
+
     /**
-     *  判断地址是否正确
+     * 判断地址是否正确
      * 高 2022/12/17
      */
     public static boolean isValidUrl(String url) {
@@ -263,23 +270,57 @@ public class WebUtils {
 
     /**
      * 将 Base64 字符串解码，再解码URL参数, 默认使用 UTF-8
+     *
      * @param source 原始 Base64 字符串
      * @return decoded string
-     *
+     * <p>
      * aHR0cHM6Ly9maWxlLmtla2luZy5jbi9kZW1vL%2BS4reaWhy5wcHR4 -> https://file.keking.cn/demo/%E4%B8%AD%E6%96%87.pptx -> https://file.keking.cn/demo/中文.pptx
      */
     public static String decodeUrl(String source) {
-        String url = decodeBase64String(source, StandardCharsets.UTF_8);
-        if (! StringUtils.isNotBlank(url)){
-            return null;
+        try {
+            return decrypt(source);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+    }
 
-        return url;
+    public static String decrypt(String source) throws Exception {
+        String urlDecryptKey = System.getenv("URL_DECRYPT_KEY");
+        return decrypt(source, urlDecryptKey);
+    }
+
+    public static String encrypt(String source) throws Exception {
+        String urlDecryptKey = System.getenv("URL_DECRYPT_KEY");
+        return encrypt(source, urlDecryptKey);
+    }
+
+    public static String encrypt(String plaintext, String keyString) throws Exception {
+        byte[] key = generateKeyFromString(keyString);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(new byte[16]));
+        byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes("UTF-8"));
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    private static String decrypt(String ciphertext, String keyString) throws Exception {
+        byte[] key = generateKeyFromString(keyString);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(new byte[16]));
+        byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
+        return new String(decryptedBytes);
+    }
+
+    private static byte[] generateKeyFromString(String keyString) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        return digest.digest(keyString.getBytes("UTF-8"));
     }
 
     /**
      * 将 Base64 字符串使用指定字符集解码
-     * @param source 原始 Base64 字符串
+     *
+     * @param source   原始 Base64 字符串
      * @param charsets 字符集
      * @return decoded string
      */
@@ -294,7 +335,7 @@ public class WebUtils {
         } catch (Exception e) {
             if (e.getMessage().toLowerCase().contains(BASE64_MSG)) {
                 LOGGER.error("url解码异常，接入方法错误未使用BASE64");
-            }else {
+            } else {
                 LOGGER.error("url解码异常，其他错误", e);
             }
             return null;
@@ -303,6 +344,7 @@ public class WebUtils {
 
     /**
      * 获取 url 的 host
+     *
      * @param urlStr url
      * @return host
      */
@@ -317,6 +359,7 @@ public class WebUtils {
 
     /**
      * 获取 session 中的 String 属性
+     *
      * @param request 请求
      * @return 属性值
      */
@@ -334,8 +377,9 @@ public class WebUtils {
 
     /**
      * 获取 session 中的 long 属性
+     *
      * @param request 请求
-     * @param key 属性名
+     * @param key     属性名
      * @return 属性值
      */
     public static long getLongSessionAttr(HttpServletRequest request, String key) {
@@ -348,8 +392,9 @@ public class WebUtils {
 
     /**
      * session 中设置属性
+     *
      * @param request 请求
-     * @param key 属性名
+     * @param key     属性名
      */
     public static void setSessionAttr(HttpServletRequest request, String key, Object value) {
         HttpSession session = request.getSession();
@@ -361,8 +406,9 @@ public class WebUtils {
 
     /**
      * 移除 session 中的属性
+     *
      * @param request 请求
-     * @param key 属性名
+     * @param key     属性名
      */
     public static void removeSessionAttr(HttpServletRequest request, String key) {
         HttpSession session = request.getSession();

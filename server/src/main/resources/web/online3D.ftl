@@ -7,7 +7,7 @@
     <title>${file.name}3D预览</title>
 	  <script src="js/base64.min.js" type="text/javascript"></script>
     <#include "*/commonHeader.ftl">
-	
+
 </head>
 	<#if currentUrl?contains("http://") || currentUrl?contains("https://") || currentUrl?contains("file://")>
     <#assign finalUrl="${currentUrl}">
@@ -23,12 +23,12 @@
     var url = '${finalUrl}';
     var baseUrl = '${baseUrl}'.endsWith('/') ? '${baseUrl}' : '${baseUrl}' + '/';
     if (!url.startsWith(baseUrl)) {
-         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent(Base64.encode(url));
+         url = baseUrl + 'getCorsFile?urlPath=' + encodeURIComponent('${WebUtils.encrypt(finalUrl)}');
 		 document.getElementsByTagName('iframe')[0].src = "${baseUrl}website/index.html#model="+ url + "&fullfilename=/${file.name}";
     }else{
 	document.getElementsByTagName('iframe')[0].src = "${baseUrl}website/index.html#model="+ url;
 	}
-	
+
     document.getElementsByTagName('iframe')[0].height = document.documentElement.clientHeight - 10;
     /**
      * 页面变化调整高度
